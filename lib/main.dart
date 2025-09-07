@@ -43,33 +43,30 @@ class MyApp extends StatelessWidget {
         ),
       ),
       initialRoute: '/auth',
-      routes: {'/auth': (context) => const AuthScreen()},
-      onGenerateRoute: (settings) {
-        if (settings.name == '/home') {
-          final args = settings.arguments;
+      routes: {
+        '/auth': (context) => const AuthScreen(),
+        '/home': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments;
           if (args is String) {
-            return MaterialPageRoute(
-              builder: (context) => HomeScreen(email: args),
-            );
+            return HomeScreen(email: args);
           } else {
-            return _errorRoute("Invalid argument for HomeScreen");
+            return _errorScreen("Invalid argument for HomeScreen");
           }
-        }
-        return _errorRoute("Route not found");
+        },
       },
+      onUnknownRoute: (settings) =>
+          MaterialPageRoute(builder: (_) => _errorScreen("Route not found")),
     );
   }
 
-  Route<dynamic> _errorRoute(String message) {
-    return MaterialPageRoute(
-      builder: (context) => Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(title: const Text("Error")),
-        body: Center(
-          child: Text(
-            message,
-            style: const TextStyle(fontSize: 18, color: Colors.redAccent),
-          ),
+  Widget _errorScreen(String message) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(title: const Text("Error")),
+      body: Center(
+        child: Text(
+          message,
+          style: const TextStyle(fontSize: 18, color: Colors.redAccent),
         ),
       ),
     );

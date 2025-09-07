@@ -1,6 +1,6 @@
 {
-    "name": "flutter_login_form",
-    "short_name": "flutter_login_form",
+    "name": "store_app",
+    "short_name": "store_app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

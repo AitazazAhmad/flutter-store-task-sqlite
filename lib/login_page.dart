@@ -4,9 +4,11 @@ import 'database_helper.dart';
 class LoginPage extends StatefulWidget {
   final DatabaseHelper? dbHelper;
 
+  // ignore: use_super_parameters
   const LoginPage({Key? key, this.dbHelper}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 

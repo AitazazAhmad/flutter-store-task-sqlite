@@ -38,7 +38,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _logout(BuildContext context) {
-    Navigator.pushReplacementNamed(context, '/auth');
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/auth',
+      (route) => false, // Remove all existing routes
+    );
+  }
+
+  // Handle back button - perform logout
+  // ignore: unused_element
+  Future<bool> _onWillPop() async {
+    _logout(context);
+    return false; // Prevent default back behavior
   }
 
   Future<void> _addOrUpdateProduct() async {
@@ -95,234 +106,246 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Grocery Store'),
-        backgroundColor: theme.primaryColor,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () => _logout(context),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Welcome
-            Text(
-              'Welcome, ${widget.email}!',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+    return PopScope(
+      canPop: false, // Disable default back button
+      // ignore: deprecated_member_use
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          _logout(context); // Perform logout when back button is pressed
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Grocery Store'),
+          backgroundColor: theme.primaryColor,
+          automaticallyImplyLeading: false, // Hide back button
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+              onPressed: () => _logout(context),
             ),
-            const SizedBox(height: 20),
-
-            // Form
-            Card(
-              color: theme.cardColor,
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Welcome
+              Text(
+                'Welcome, ${widget.email}!',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      Text(
-                        _isEditing ? 'Edit Product' : 'Add Product',
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Product Name',
+              const SizedBox(height: 20),
+
+              // Form
+              Card(
+                color: theme.cardColor,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        Text(
+                          _isEditing ? 'Edit Product' : 'Add Product',
+                          style: theme.textTheme.titleLarge,
                         ),
-                        validator: (value) =>
-                            value!.isEmpty ? 'Enter product name' : null,
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _priceController,
-                              decoration: const InputDecoration(
-                                labelText: 'Price',
-                                prefixText: '\$ ',
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Enter price';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Enter a valid number';
-                                }
-                                return null;
-                              },
-                            ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Product Name',
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _categoryController,
-                              decoration: const InputDecoration(
-                                labelText: 'Category',
-                              ),
-                              validator: (value) =>
-                                  value!.isEmpty ? 'Enter category' : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: const InputDecoration(
-                          labelText: 'Description',
+                          validator: (value) =>
+                              value!.isEmpty ? 'Enter product name' : null,
                         ),
-                        maxLines: 2,
-                        validator: (value) =>
-                            value!.isEmpty ? 'Enter description' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          ElevatedButton(
-                            onPressed: _addOrUpdateProduct,
-                            child: Text(_isEditing ? 'Update' : 'Add Product'),
-                          ),
-                          const SizedBox(width: 12),
-                          if (_isEditing)
-                            TextButton(
-                              onPressed: _resetForm,
-                              child: const Text('Cancel'),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _priceController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Price',
+                                  prefixText: '\$ ',
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Enter price';
+                                  }
+                                  if (double.tryParse(value) == null) {
+                                    return 'Enter a valid number';
+                                  }
+                                  return null;
+                                },
+                              ),
                             ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _categoryController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Category',
+                                ),
+                                validator: (value) =>
+                                    value!.isEmpty ? 'Enter category' : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _descriptionController,
+                          decoration: const InputDecoration(
+                            labelText: 'Description',
+                          ),
+                          maxLines: 2,
+                          validator: (value) =>
+                              value!.isEmpty ? 'Enter description' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: _addOrUpdateProduct,
+                              child: Text(
+                                _isEditing ? 'Update' : 'Add Product',
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            if (_isEditing)
+                              TextButton(
+                                onPressed: _resetForm,
+                                child: const Text('Cancel'),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Product List Header
-            Row(
-              children: [
-                Text(
-                  'Your Products',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: theme.primaryColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${_products.length}',
-                    style: const TextStyle(
-                      color: Colors.white,
+              // Product List Header
+              Row(
+                children: [
+                  Text(
+                    'Your Products',
+                    style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Product List
-            Expanded(
-              child: _products.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'No products yet.',
-                        style: TextStyle(color: Colors.white70, fontSize: 16),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: _products.length,
-                      itemBuilder: (context, index) {
-                        final product = _products[index];
-                        return Card(
-                          color: theme.cardColor,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Name and price
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      product.name,
-                                      style: theme.textTheme.titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    Text(
-                                      '\$${product.price.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.deepPurple,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(product.description),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Category: ${product.category}',
-                                  style: const TextStyle(
-                                    fontStyle: FontStyle.italic,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.blue,
-                                      ),
-                                      onPressed: () => _editProduct(product),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () =>
-                                          _deleteProduct(product.id),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: theme.primaryColor,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-            ),
-          ],
+                    child: Text(
+                      '${_products.length}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Product List
+              Expanded(
+                child: _products.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No products yet.',
+                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: _products.length,
+                        itemBuilder: (context, index) {
+                          final product = _products[index];
+                          return Card(
+                            color: theme.cardColor,
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Name and price
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        product.name,
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                      Text(
+                                        '\$${product.price.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.deepPurple,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(product.description),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Category: ${product.category}',
+                                    style: const TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          color: Colors.blue,
+                                        ),
+                                        onPressed: () => _editProduct(product),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed: () =>
+                                            _deleteProduct(product.id),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
